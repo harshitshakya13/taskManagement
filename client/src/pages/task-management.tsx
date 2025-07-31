@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -8,7 +9,7 @@ import { useTheme } from "@/components/theme-provider";
 import { TaskCard } from "@/components/task-card";
 import { TaskModal } from "@/components/task-modal";
 import { useToast } from "@/hooks/use-toast";
-import { LocalStorageManager } from "@/lib/localStorage";
+import { apiRequest } from "@/lib/queryClient";
 import type { Task, Comment } from "@shared/schema";
 
 export default function TaskManagement() {
@@ -17,142 +18,127 @@ export default function TaskManagement() {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteTaskId, setDeleteTaskId] = useState<number | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Initialize data from localStorage
-  useEffect(() => {
-    LocalStorageManager.initializeData();
-    loadData();
-  }, []);
+  // Fetch tasks
+  const { data: tasks = [], isLoading: tasksLoading } = useQuery<Task[]>({
+    queryKey: ["/api/tasks"],
+  });
 
-  const loadData = () => {
-    setIsLoading(true);
-    try {
-      const allTasks = LocalStorageManager.getTasks();
-      const allComments = LocalStorageManager.getComments();
-      setTasks(allTasks);
-      setComments(allComments);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load data from localStorage",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Fetch comments for all tasks
+  const { data: allComments = [] } = useQuery<Comment[]>({
+    queryKey: ["/api/comments"],
+    queryFn: async () => {
+      const commentsPromises = tasks.map(task =>
+        fetch(`/api/tasks/${task.id}/comments`).then(res => res.json())
+      );
+      const commentsArrays = await Promise.all(commentsPromises);
+      return commentsArrays.flat();
+    },
+    enabled: tasks.length > 0,
+  });
 
-  // Task operations
-  const createTask = (taskData: any) => {
-    try {
-      LocalStorageManager.createTask(taskData);
-      loadData();
+  // Create task mutation
+  const createTaskMutation = useMutation({
+    mutationFn: async (taskData: any) => {
+      const response = await apiRequest("POST", "/api/tasks", taskData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       toast({
         title: "Success",
         description: "Task created successfully!",
       });
-    } catch (error) {
+    },
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to create task. Please try again.",
         variant: "destructive",
       });
-    }
-  };
+    },
+  });
 
-  const updateTask = ({ id, ...taskData }: any) => {
-    try {
-      LocalStorageManager.updateTask(id, taskData);
-      loadData();
+  // Update task mutation
+  const updateTaskMutation = useMutation({
+    mutationFn: async ({ id, ...taskData }: any) => {
+      const response = await apiRequest("PUT", `/api/tasks/${id}`, taskData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       toast({
         title: "Success",
         description: "Task updated successfully!",
       });
-    } catch (error) {
+    },
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to update task. Please try again.",
         variant: "destructive",
       });
-    }
-  };
+    },
+  });
 
-  const deleteTask = (id: number) => {
-    try {
-      LocalStorageManager.deleteTask(id);
-      loadData();
+  // Delete task mutation
+  const deleteTaskMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/tasks/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/tasks"] });
       toast({
         title: "Success",
         description: "Task deleted successfully!",
       });
-    } catch (error) {
+    },
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to delete task. Please try again.",
         variant: "destructive",
       });
-    }
-  };
+    },
+  });
 
-  const addComment = ({ taskId, content, parentId }: { taskId: number; content: string; parentId?: number }) => {
-    try {
-      LocalStorageManager.createComment({
-        taskId,
+  // Add comment mutation
+  const addCommentMutation = useMutation({
+    mutationFn: async ({ taskId, content, parentId }: { taskId: number; content: string; parentId?: number }) => {
+      const response = await apiRequest("POST", `/api/tasks/${taskId}/comments`, {
         content,
         parentId,
         author: "Current User",
         isStatusChange: false,
       });
-      loadData();
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/comments"] });
       toast({
         title: "Success",
         description: "Comment added successfully!",
       });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add comment. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+    },
+  });
 
-  const changeStatus = ({ taskId, newStatus, comment }: { taskId: number; newStatus: string; comment: string }) => {
-    try {
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
-
+  // Status change mutation
+  const statusChangeMutation = useMutation({
+    mutationFn: async ({ taskId, newStatus, comment }: { taskId: number; newStatus: string; comment: string }) => {
       // Update task status
-      LocalStorageManager.updateTask(taskId, { status: newStatus, updatedBy: "Current User" });
+      await updateTaskMutation.mutateAsync({ id: taskId, status: newStatus, updatedBy: "Current User" });
       
       // Add status change comment
-      LocalStorageManager.createComment({
+      await addCommentMutation.mutateAsync({
         taskId,
         content: comment,
-        author: "Current User",
-        isStatusChange: true,
-        oldStatus: task.status,
-        newStatus,
+        parentId: undefined,
       });
-      
-      loadData();
-      toast({
-        title: "Success",
-        description: "Status updated successfully!",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update status. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+    },
+  });
 
   // Filter and search logic
   const filteredTasks = useMemo(() => {
@@ -194,7 +180,7 @@ export default function TaskManagement() {
   }, [tasks]);
 
   const handleCreateTask = (taskData: any) => {
-    createTask(taskData);
+    createTaskMutation.mutate(taskData);
   };
 
   const handleEditTask = (task: Task) => {
@@ -204,7 +190,7 @@ export default function TaskManagement() {
 
   const handleUpdateTask = (taskData: any) => {
     if (editingTask) {
-      updateTask({ id: editingTask.id, ...taskData });
+      updateTaskMutation.mutate({ id: editingTask.id, ...taskData });
       setEditingTask(null);
     }
   };
@@ -215,21 +201,21 @@ export default function TaskManagement() {
 
   const confirmDeleteTask = () => {
     if (deleteTaskId) {
-      deleteTask(deleteTaskId);
+      deleteTaskMutation.mutate(deleteTaskId);
       setDeleteTaskId(null);
     }
   };
 
   const handleAddComment = (taskId: number, content: string, parentId?: number) => {
-    addComment({ taskId, content, parentId });
+    addCommentMutation.mutate({ taskId, content, parentId });
   };
 
   const handleStatusChange = (taskId: number, newStatus: string, comment: string) => {
-    changeStatus({ taskId, newStatus, comment });
+    statusChangeMutation.mutate({ taskId, newStatus, comment });
   };
 
   const getCommentsForTask = (taskId: number) => {
-    return comments.filter(comment => comment.taskId === taskId);
+    return allComments.filter(comment => comment.taskId === taskId);
   };
 
   return (
@@ -312,7 +298,7 @@ export default function TaskManagement() {
 
         {/* Task List */}
         <div className="space-y-4">
-          {isLoading ? (
+          {tasksLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
               <p className="mt-2 text-gray-500 dark:text-gray-400">Loading tasks...</p>

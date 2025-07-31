@@ -2,14 +2,14 @@
 
 ## Overview
 
-This is a client-side task management application built with React and localStorage. The application allows users to create, edit, delete, and comment on tasks with animated UI elements, dark/light theme support, and a modern, responsive design. Data is persisted using browser localStorage instead of requiring a backend database.
+This is a full-stack task management application built with React frontend and Express backend. The application allows users to create, edit, delete, and comment on tasks with animated UI elements, dark/light theme support, and a modern, responsive design. Data is persisted using JSON files on the server instead of requiring a database.
 
 ## User Preferences
 
 - Preferred communication style: Simple, everyday language
 - Branding: Use "&lt;HarshitTaskFlow/&gt;" as logo and title name
 - Copyright: Show current year (2025) with developer name "Harshit Shakya"
-- Data storage: Use localStorage instead of database dependencies
+- Data storage: Use JSON files instead of database dependencies
 - UI: Include animations and improved visual appeal
 
 ## System Architecture
@@ -23,11 +23,11 @@ This is a client-side task management application built with React and localStor
 - **Theme**: Dark/light mode support with custom theme provider
 
 ### Backend Architecture
-- **Framework**: Express.js with TypeScript (minimal backend for development)
+- **Framework**: Express.js with TypeScript
 - **Runtime**: Node.js with ES modules
-- **Storage**: Client-side localStorage implementation via LocalStorageManager
-- **Data Persistence**: Browser localStorage with structured keys for tasks and comments
-- **API Style**: Direct localStorage operations, no network requests required
+- **Storage**: JSON file-based storage system via JsonFileStorage
+- **Data Persistence**: Server-side JSON files (tasks.json, comments.json, counters.json)
+- **API Style**: RESTful API endpoints with JSON file operations
 
 ### UI Component System
 - **Component Library**: Radix UI primitives with custom styling
@@ -49,8 +49,9 @@ This is a client-side task management application built with React and localStor
 - **ThemeProvider**: Dark/light mode toggle with persistence
 
 ### Backend Services
-- **LocalStorageManager**: Client-side data management utility
-- **Sample Data**: Pre-populated tasks and comments for demonstration
+- **JsonFileStorage**: Server-side JSON file management system
+- **API Routes**: RESTful endpoints for tasks and comments operations
+- **Sample Data**: Pre-populated JSON files with demonstration data
 - **Validation**: Zod schema validation for type safety
 
 ### Animation System
@@ -64,10 +65,10 @@ This is a client-side task management application built with React and localStor
 ### Task Management Flow
 1. User creates/edits tasks through TaskModal
 2. Form validation using Zod schemas
-3. Direct localStorage operations via LocalStorageManager
-4. Data stored in browser localStorage with structured keys
-5. Component state updates trigger UI refresh
-6. Automatic data persistence across browser sessions
+3. API requests to Express server endpoints
+4. JSON file operations via JsonFileStorage
+5. React Query manages server state and cache invalidation
+6. UI updates reflect changes with automatic data synchronization
 
 ### Comment System Flow
 1. User adds comments or status changes
@@ -77,11 +78,12 @@ This is a client-side task management application built with React and localStor
 5. UI updates reflect changes with animations
 
 ### State Management
-- Local state managed by React hooks (useState, useEffect)
-- Data persistence via browser localStorage
+- Server state managed by TanStack Query (React Query)
+- Local UI state managed by React hooks (useState, useEffect)
+- Data persistence via server-side JSON files
 - Theme state persisted to localStorage
 - Form state managed by controlled components
-- No network requests - fully client-side operation
+- RESTful API communication for all data operations
 
 ## External Dependencies
 
@@ -113,21 +115,24 @@ This is a client-side task management application built with React and localStor
 - No environment variables required for basic functionality
 
 ### Data Storage
-- Browser localStorage with structured keys
-- Automatic data initialization with sample content
-- Cross-session persistence without server requirements
-- LocalStorageManager utility for all data operations
+- Server-side JSON files (data/tasks.json, data/comments.json, data/counters.json)
+- Automatic file creation and initialization with sample content
+- Persistent storage across server restarts
+- JsonFileStorage utility for all file operations
+- RESTful API endpoints for data access
 
 ### Development vs Production
-- Development: Vite dev server with HMR
-- Production: Static files deployable to any web server
-- Client-side only: No server infrastructure required
+- Development: Express server with Vite HMR integration
+- Production: Full-stack application with Express backend
+- Server-side: Requires Node.js runtime for JSON file operations
 - Responsive design: Works on mobile, tablet, and desktop
 
 ## Recent Changes (Updated 2025-01-20)
 
 ### Major Architecture Changes
-✓ Migrated from database-dependent backend to client-side localStorage
+✓ Migrated from localStorage to server-side JSON file storage
+✓ Implemented RESTful API with Express backend
+✓ Integrated TanStack Query for server state management
 ✓ Updated branding to "&lt;HarshitTaskFlow/&gt;" with animated logo
 ✓ Enhanced UI with custom animations and improved visual appeal
 ✓ Fixed HTML validation errors in comment threading components
@@ -135,10 +140,12 @@ This is a client-side task management application built with React and localStor
 ✓ Updated copyright to 2025 with developer attribution
 
 ### Key Features Added
-✓ localStorage-based data persistence
+✓ JSON file-based data persistence with server-side storage
+✓ RESTful API endpoints for all CRUD operations
+✓ Server state management with TanStack Query
 ✓ Custom CSS animations (glow, fade-in, scale-in effects)
 ✓ Improved responsive design
 ✓ Enhanced theme switching animations
 ✓ Better accessibility compliance
 
-The application is now completely client-side, requiring no backend infrastructure while maintaining full functionality for task management, comment threading, and data persistence.
+The application is now a full-stack solution with Express backend and JSON file storage, providing robust data persistence and professional API architecture while maintaining excellent user experience.

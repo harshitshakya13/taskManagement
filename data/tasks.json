@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "title": "Implement User Authentication2",
+    "description": "Set up JWT authentication with login, register, and password reset functionality. Include email verification and role-based access control.",
+    "status": "work-in-process",
+    "addedBy": "Sarah Chen",
+    "updatedBy": "Current User",
+    "createdAt": "2024-12-15T14:30:00.000Z",
+    "updatedAt": "2025-07-20T10:14:37.389Z"
+  },
+  {
+    "id": 2,
+    "title": "Database Migration Scripts",
+    "description": "Create migration scripts for user tables, indexes, and initial data seeding for the production environment.",
+    "status": "completed",
+    "addedBy": "Alex Lee",
+    "updatedBy": "Alex Lee",
+    "createdAt": "2024-12-14T10:00:00.000Z",
+    "updatedAt": "2024-12-16T11:30:00.000Z"
+  },
+  {
+    "id": 3,
+    "title": "API Documentation Update",
+    "description": "Update API documentation with new endpoints and authentication requirements. Include request/response examples and error codes.",
+    "status": "pending",
+    "addedBy": "David Wilson",
+    "updatedBy": "David Wilson",
+    "createdAt": "2024-12-16T08:00:00.000Z",
+    "updatedAt": "2024-12-16T08:00:00.000Z"
+  },
+  {
+    "title": "test",
+    "description": "test",
+    "status": "pending",
+    "addedBy": "Current User",
+    "updatedBy": "Current User",
+    "id": 4,
+    "createdAt": "2025-07-20T10:14:57.370Z",
+    "updatedAt": "2025-07-20T10:14:57.370Z"
+  }
+]

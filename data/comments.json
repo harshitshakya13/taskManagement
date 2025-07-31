@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "taskId": 1,
+    "parentId": null,
+    "content": "Changed status from Pending to Work In Process. Started working on the JWT implementation. Setting up the authentication middleware first.",
+    "author": "Mike Johnson",
+    "createdAt": "2024-12-16T07:00:00.000Z",
+    "isStatusChange": true,
+    "oldStatus": "pending",
+    "newStatus": "work-in-process"
+  },
+  {
+    "id": 2,
+    "taskId": 1,
+    "parentId": null,
+    "content": "Great! Make sure to implement rate limiting for the authentication endpoints to prevent brute force attacks.",
+    "author": "Sarah Chen",
+    "createdAt": "2024-12-16T05:00:00.000Z",
+    "isStatusChange": false,
+    "oldStatus": null,
+    "newStatus": null
+  },
+  {
+    "id": 3,
+    "taskId": 1,
+    "parentId": 2,
+    "content": "@Sarah Chen Good point! I'll also add Redis for session management and implement proper logout handling.",
+    "author": "Alex Lee",
+    "createdAt": "2024-12-16T06:00:00.000Z",
+    "isStatusChange": false,
+    "oldStatus": null,
+    "newStatus": null
+  }
+]
